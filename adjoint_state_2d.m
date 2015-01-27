@@ -1,16 +1,18 @@
-function [m,misfit]=adjoint_state_2d
-
+function adjoint_state_2d
+clear all
+close all
+clc
 fmin=1;							% minimum frequency
-fmax=20;						% maximum frequency
+fmax=15;						% maximum frequency
 n=10*fmax;						% number of interior grid points in one direction
 N=n^2;							% total number of interior grid points
 h=1/(n+1);						% spatial resolution
-nf=20;							% number of frequencies
+nf=10;							% number of frequencies
 ns=50;							% number of sources
 nr=50;							% number of receivers
 sigma=1e-2;						% noise level
 freqs=linspace(fmin,fmax,nf);	% vector of all frequencies
-x=h:h:1-h;						% grid points
+% x=h:h:1-h;						% grid points
 ctr=1;							% contrast
 c_true = 1+ctr*phantom2(n,.3);
 
@@ -34,46 +36,62 @@ r_yind=round(r_yloc/h);
 r_fi=sub2ind([n n],r_xind,r_yind);
 
 figure
-imagesc()
+imagesc(c_true)
+c_vec=caxis;
 hold on
 plot(r_xind,n-r_yind+1,'rx',s_xind,n-s_yind+1,'go')
-axis equal
+axis square
 legend('Receivers','Sources')
+title(sprintf('Spatial dof:%d, inverse prob. dof:%d',N,nf*ns*nr))
+drawnow
 
 m=ones(N,1);					% initial guess for background squared slowness
-
 b=zeros(N,ns);					% right-hand sides
 d=zeros(nr,nf,ns);				% data
 I=speye(N);
 E=I(:,r_fi);
 
 % Create right-hand sides and data
+fprintf('Generating data... frequency: ')
 rng(1)
 for i=1:nf
-	A_true=helmholtz_fos_1d(1./c_true.^2,freqs(i));
+	fprintf('%d, ',i)
+	A_true=invertA(helmholtz_2d(1./c_true.^2,freqs(i),n));
 	for j=1:ns
-		b(s_fi(j),j)=1/h^2;
-		u_true=A_true\b(:,j);
+		if i==1, b(s_fi(j),j)=1/h^2; end
+		u_true=A_true.apply(b(:,j));
 		d(:,i,j)=u_true(r_fi)+sigma*(rand+1i*rand);
 	end
 end
+fprintf('\n')
 clear u_true A_true
-% 
-% [m,out]=LBFGS(@adjoint_state_gradient,m);
-% misfit=out.J(out.J~=0);
-% 
-% 	function [J,DJ]=adjoint_state_gradient(m)
-% 		J=0;
-% 		DJ=zeros(nx,1);
-% 		for ii=1:nf
-% 			A=helmholtz_fos_1d(m,freqs(ii));
-% 			for jj=1:ns
-% 				u=A\b(:,jj);
-% 				bq=E*(u(xr_ind)-d(:,ii,jj));
-% 				q=(A')\bq;
-% 				DJ=DJ+(2*pi*freqs(ii))^2*real(u.*conj(q));
-% 				J=J+norm(u(xr_ind)-d(:,ii,jj))^2;
-% 			end
-% 		end
-% 	end
-% end
+opt.Niter=40;
+[m,out]=lbfgs(@adjoint_state_gradient,m,opt);
+
+figure
+subplot(1,2,1)
+imagesc(sqrt(1./flipud(reshape(m,n,n)')))
+caxis(c_vec)
+title('Reconstruction')
+subplot(1,2,2)
+semilogy(out.J(out.J~=0))
+title('Objective')
+
+	function [J,DJ]=adjoint_state_gradient(m)
+		fprintf('Solving Helmholtz, frequency: ')
+		J=0;
+		DJ=zeros(N,1);
+		for ii=1:nf
+			fprintf('%d, ',ii)
+			A=invertA(helmholtz_2d(flipud(reshape(m,n,n)'),freqs(ii),n),1);
+			for jj=1:ns
+				u=A.apply(b(:,jj));
+				bq=E*(u(r_fi)-d(:,ii,jj));
+				q=A.applyt(bq);
+				DJ=DJ+(2*pi*freqs(ii))^2*real(u.*conj(q));
+				J=J+norm(u(r_fi)-d(:,ii,jj))^2;
+			end
+		end
+		fprintf('\n')
+	end
+end
