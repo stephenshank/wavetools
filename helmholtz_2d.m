@@ -5,7 +5,6 @@ if nargin<4					% default PML parameters
 	pml.width = .1;			% width
 	pml.intensity = 1e4;	% intensity
 end
-vec = @(X) reshape(X,[],1);	% vectorization operator
 h = 1/(n+1);				% grid spacing
 x = (h:h:1-h)';				% vector of grid points
 xpml = pml.width;			% copy for readability

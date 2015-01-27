@@ -1,4 +1,4 @@
-function [x,out]=LBFGS(CostFunction,x0,opts)
+function [x,out]=lbfgs(CostFunction,x0,opts)
 tic;
 
 % implementation of limited memory BFGS algorithm as described in the Byrd
@@ -129,13 +129,13 @@ for i=1:Niter
     plast=p;
     
     x=xp;
-    save('profile','x')
+%     save('profile','x')
     Jx=Jxp;
     gFx=gFxp;
 
     hist(:,i)=x;
     J(i)=Jxp;
-    save('misfit','J')
+%     save('misfit','J')
     
     
     
