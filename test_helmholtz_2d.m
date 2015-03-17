@@ -2,67 +2,63 @@ clear all
 close all
 clc
 
-f = 50;			% frequency
+f = 20;			% frequency
 n = 10*f;		% number of grid points
 omega = 2*pi*f;	% angular frequency
 x = .2;			% x coordinate of point source
 y = .8;			% x coordinate of point source
-
-% Free space solution
-A = helmholtz_2d(ones(n),f,n);
-b = pt_src(n,x,y);
-U = reshape(A\b,n,n);
+pml=struct('width',.1,'intensity',5e4);
 
 figure
-subplot(3,2,1)
-[X,Y]=meshgrid(linspace(0,1,n));
-Utrue=flipud(1i*besselh(0,omega*abs(X+1i*Y-(x+1i*y)))/4);
-imagesc(real(Utrue));
-
-subplot(3,2,2)
-imagesc(flipud(real(U)'))
+% Free space solution
+dom=domain([0 1 0 1],[n n]);
+m = ones(dom.N,1);
+A = helmholtz_2d(m,f,dom,pml);
+b = dom.pt_src(x,y);
+subplot(2,4,5)
+dom.imagesc(real(A\b))
+title('Discrete approximation')
 cvec=caxis;
 
+subplot(2,4,1)
+Utrue=flipud(1i*besselh(0,omega*abs(dom.X+1i*dom.Y-(x+1i*y)))/4);
+imagesc(real(Utrue));
+title('Free space solution')
+caxis(cvec)
+
 % Shepp-Logan
-ctr = 2;
-c = 1 + ctr*phantom(n);
-A = helmholtz_2d(1./c.^2,f,n);
-b = pt_src(n,x,y);
-U = reshape(real(A\b),n,n);
+C=phantom2(n);
+m=dom.M2m(1./C.^2);
+A=helmholtz_2d(m,f,dom,pml);
+b=dom.pt_src(x,y);
+subplot(2,4,6)
+dom.imagesc(real(A\b))
+title('Discrete approximation')
+caxis(cvec)
 
-subplot(3,2,3)
-imagesc(c)
+subplot(2,4,2)
+dom.imagesc(C);
 hold on
-plot(round((n+1)*x),n-round((n+1)*y),'r.','MarkerSize',10)
+dom.plot(x,y,'r.','MarkerSize',10);
 hold off
-
-subplot(3,2,4)
-imagesc(flipud(U'))
+title('Shepp-Logan phantom')
+caxis([1 2])
 
 % Marmousi
-c = marmousi(n);
-A = helmholtz_2d(1./c.^2,f,n);
-U = reshape(real(A\b),n,n);
+subplot(2,4,7:8)
+dom=domain([0 384/122 0 1],[ceil(384/122*n) n]);
+C=marmousi(dom);
+m=dom.M2m(1./C.^2);
+A=helmholtz_2d(m,f,dom,pml);
+b=dom.pt_src(x,y);
+dom.imagesc(real(A\b))
+title('Discrete approximation')
+caxis(cvec)
 
-subplot(3,2,5)
-imagesc(c)
+subplot(2,4,3:4)
+dom.imagesc(C);
 hold on
-plot(round((n+1)*x),n-round((n+1)*y),'r.','MarkerSize',10)
+dom.plot(x,y,'r.','MarkerSize',10);
 hold off
-
-subplot(3,2,6)
-imagesc(flipud(U'))
-
-titles={'Free space solution (analytic)','Computed free space solution', ...
-	'Shepp-Logan (medical)','Computed Shepp-Logan solution', ...
-	'Marmousi (geophysics)','Computed Marmousi solution',};
-for i=1:6
-	subplot(3,2,i)
-	if ismember(i,[1 2 4 6])
-		caxis(cvec)
-	end
-	set(gca, 'XTick', []);
-	set(gca, 'YTick', []);
-	title(titles{i},'fontweight','bold','fontsize',14)
-end
-set(gcf,'Position',[50 120 480 660])
+title('Marmousi')
+caxis([1 2])
