@@ -1,4 +1,4 @@
-function A = helmholtz_2d(m,f,dom,pml)
+function [K,M,omega] = helmholtz_2d(m,f,dom,pml)
 
 xm = dom.xm;				% left x boundary
 xM = dom.xM;				% right x boundary
@@ -12,7 +12,7 @@ x = dom.x;					% gridpoints in x direction
 y = dom.y;					% gridpoints in y direction
 omega = 2*pi*f;				% angular frequency
 N = dom.N;					% total number of gridpoints
-if nargin<4					% default PML parameters
+if nargin<4	|| isempty(pml)	% default PML parameters
 	pml.width = .1;			% width
 	pml.intensity = 1e4;	% intensity
 end
@@ -51,6 +51,13 @@ for i = 1:ny
 		betas(ind,3) = -beta(x(1),y(i-1))*beta(x,ymids(i));
 	end
 end
-A = spdiags(betas,[-nx 0 nx],N,N)/hy^2 + ...	% x derivatives in modified Laplacian
-	blkdiag(Ax{:})/hx^2 - ...					% y derivatives in modified Laplacian
-	omega^2*spdiags(m,0,N,N);					% discretization of m*omega^2*s1*s2
+
+if nargout==1
+	K = blkdiag(Ax{:})/hx^2 + ...					% x derivatives in modified Laplacian
+		spdiags(betas,[-nx 0 nx],N,N)/hy^2 - ...	% y derivatives in modified Laplacian
+		omega^2*spdiags(m,0,N,N);					% discretization of m*omega^2*s1*s2
+else
+	K = blkdiag(Ax{:})/hx^2 + ...			% x derivatives in modified Laplacian
+		spdiags(betas,[-nx 0 nx],N,N)/hy^2;	% y derivatives in modified Laplacian
+	M =	spdiags(m,0,N,N);			% discretization of m*omega^2*s1*s2
+end
