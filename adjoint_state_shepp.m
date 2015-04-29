@@ -16,9 +16,9 @@ sigma=1e-5;						% noise level
 maxit=25;						% maximum number of LBFGS iterations
 smoothness=.5;					% intensity of smoothing filter
 
-%% Shepp-Logan phantom
+%% Shepp-Logan phantom and source/receiver/window configuration
 nx=ceil(10*fmax);				% number of gridpoints in a given direction
-dom=domain([0 1 0 1],[nx nx]); % square domain with equispaced gridpoints
+dom=domain([0 1 0 1],[nx nx]);	% square domain with equispaced gridpoints
 source_info.type='ring';		% create a ring of sources
 source_info.center=[.5 .5];		% center of ring of sources
 source_info.radius=.35;			% radius of ring of sources
@@ -30,7 +30,8 @@ receivers=sources_and_receivers(nr,receiver_info);
 window_info.type='disk';
 window_info.center=[.5 .5];
 window_info.radius=.3;
-[win_inds,W]=dom.window(window_info);
+
+[~,W]=dom.window(window_info);
 c_true=dom.M2m(phantom2(nx,.35,ctr,smoothness));
 c0=dom.M2m(ones(nx));
 pml_info.type='pml';
@@ -81,7 +82,7 @@ drawnow
 %% Reconstruction via adjoint state method
 fprintf('Spatial dof:%d, inverse prob. dof:%d\n',dom.N,nf*ns*nr)
 tic
-[m,out]=adjoint_state_2d(dom,freqs,sources,receivers,win_inds,c_true,c0,sigma,maxit);
+[m,out]=adjoint_state_2d(dom,freqs,sources,receivers,window_info,c_true,c0,sigma,maxit);
 toc
 
 %% Post computation reconstrution and objective function

@@ -109,7 +109,7 @@ end
 %% Reconstruction via adjoint state method
 fprintf('Spatial dof:%d, inverse prob. dof:%d\n',dom.N,nf*ns*nr)
 tic
-[m,out] = adjoint_state_2d(dom,freqs,sources,receivers,win_inds,c_true,c0,sigma,maxit);
+[m,out] = adjoint_state_2d(dom,freqs,sources,receivers,window_info,c_true,c0,sigma,maxit);
 cpu_time = toc;
 fprintf('Running time... %.2f (s).\n',cpu_time)
 

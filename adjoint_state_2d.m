@@ -1,22 +1,22 @@
-function [m,out]=adjoint_state_2d(dom,freqs,sources,receivers,win_inds,ctrue,c0,sigma,maxit)
+function [m,out]=adjoint_state_2d(dom,freqs,sources,receivers,window_info,ctrue,c0,sigma,maxit)
 %ADJOINT_STATE_2D   Adjoint-state method for full-waveform inversion in 2D.
 
 if isempty(gcp('nocreate')), parpool; end
 
-N = dom.N;							% total number of interior grid points
-nf = length(freqs);					% number of frequencies
-ns = size(sources,2);				% number of sources
-nr = size(receivers,2);				% number of receivers
-nw = length(win_inds);				% number of pixels outside window
-r_ind = dom.loc2ind(receivers);		% flat indices of receivers
-b = zeros(N,ns);					% initialize right-hand sides
-d = zeros(nr,nf,ns);				% seismic data
-I = speye(N);						% for padding/prolongation operators
-E_rec = I(:,r_ind);					% padding operator
-E_win = I(:,win_inds);				% prolongate to window
-mtrue = 1./ctrue.^2;				% true sqaured slowness
-m0 = mtrue;							% initial squared slowness, true value inside window
-m0(win_inds) = 1./c0(win_inds).^2;	% set values outside of window to initial value
+N = dom.N;								% total number of interior grid points
+[win_inds,~,W] = dom.window(window_info);
+nf = length(freqs);						% number of frequencies
+ns = size(sources,2);					% number of sources
+nr = size(receivers,2);					% number of receivers
+nw = length(win_inds);					% number of pixels outside window
+r_ind = dom.loc2ind(receivers);			% flat indices of receivers
+b = zeros(N,ns);						% initialize right-hand sides
+d = zeros(nr,nf,ns);					% seismic data
+I = speye(N);							% for padding/prolongation operators
+E_rec = I(:,r_ind);						% padding operator
+mtrue = 1./ctrue.^2;					% true sqaured slowness
+m0 = mtrue;								% initial squared slowness, true value inside window
+m0(win_inds) = 1./c0(win_inds).^2;		% set values outside of window to initial value
 
 % Create discrete deltas at source location
 for j = 1:ns
@@ -39,7 +39,7 @@ fprintf('\n')
 clear u_true A_true
 opt.Niter = maxit;
 [dm,out] = lbfgs(@adjoint_state_gradient,zeros(nw,1),opt);
-m = m0+E_win*dm;
+m = m0+W*dm;
 
 	function [J,DJ] = adjoint_state_gradient(dm)
 		% Compute the gradient of J(m) = .5*|| S*u(m) - d ||^2 via the adjoint state method
@@ -48,7 +48,7 @@ m = m0+E_win*dm;
 		J = 0;				% value of objective function
 		parfor ii = 1:nf
 			fprintf('%d, ',ii)
-			A = invertA(helmholtz_2d(m0+E_win*dm,freqs(ii),dom),1);
+			A = invertA(helmholtz_2d(m0+W*dm,freqs(ii),dom),1);
 			for jj = 1:ns
 				u = A.apply(b(:,jj));
 				bq = E_rec*(u(r_ind)-d(:,ii,jj));

@@ -67,7 +67,7 @@ classdef domain
 			b(bind) = 1/(this.hx*this.hy);
 		end
 		
-		function [inds,W] = window(this,info)
+		function [inds,W,IW] = window(this,info)
 			all_inds = 1:this.N;
 			vec = @(X) reshape(X,[],1);
 			x = vec(this.X');
@@ -97,6 +97,8 @@ classdef domain
 					inds = all_inds;
 					W = ones(this.ny,this.nx);
 			end
+			I = speye(this.N);
+			IW = I(:,inds);
 		end
 		
 		function imagesc(this,m,meshgrid)
