@@ -78,13 +78,18 @@ classdef domain
 					r = info.radius;
 					inds = all_inds((x-c(1)).^2+(y-c(2)).^2 < r^2);
 					W = double((this.X-c(1)).^2+(this.Y-c(2)).^2 < r^2);
-				case 'rectangle'
+				case {'rectangle_inner','rectangle_outer'}
 					xm = info.bounds(1);
 					xM = info.bounds(2);
 					ym = info.bounds(3);
 					yM = info.bounds(4);
-					inds = all_inds(x <= xm | x >= xM | y <= ym | y >= yM);
-					W = double(this.X <= xm | this.X >= xM | this.Y <= ym | this.Y >= yM);
+					if strcmp(info.type,'rectangle_inner')
+						inds = all_inds(x <= xm | x >= xM | y <= ym | y >= yM);
+						W = double(this.X <= xm | this.X >= xM | this.Y <= ym | this.Y >= yM);
+					else
+						inds = all_inds(x >= xm & x <= xM & y >= ym & y <= yM);
+						W = double(this.X >= xm & this.X <= xM & this.Y >= ym & this.Y <= yM);
+					end
 				case 'pml'
 					wpml = info.width;
 					xm = this.xm+wpml;

@@ -38,7 +38,7 @@ receivers = sources_and_receivers(nr,receiver_info);	% x and y locations of rece
 if strcmp(window_type,'all')							% decide whether or not to window
 	window_info.type = 'all';							% take all points
 else
-	window_info.type = 'rectangle';						% create a rectangular window
+	window_info.type = 'rectangle_inner';				% create a rectangular window
 	window_info.bounds = [.1 3 .7 .85];					% boundary of this window
 end
 [win_inds,W] = dom.window(window_info);					% indices of elements outside of window
