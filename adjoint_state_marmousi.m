@@ -1,15 +1,16 @@
 % NOTICE: This script can be configured to save data from different runs.
 % Simply set save_data = 1 and alter data_dir on line 12 below.
 
-%% Clear and close everything
+%% Clear and close everything, open parallel pool
 clear all
 close all
 clc
+if isempty(gcp('nocreate')), parpool; end
 
-%% Key parameter (designed to be edited quickly)
-window_type = 'all';
+%% Key parameters (designed to be edited quickly)
+window_type = 'all';									% change to get rectangular window around receivers
 save_data = 0;											% determine whether we save info
-data_dir = '~/Documents/MATLAB/wavetools/marm_data/';	% directory to save data in
+data_dir = '~/Documents/MATLAB/wavetools/marm_data/';	% directory to save data in (if save_data=1)
 fmin = 1;												% minimum frequency
 fmax = 20;												% maximum frequency
 nf = 12;												% number of frequencies
@@ -24,7 +25,7 @@ ns = ceil(sqrt(nx*ny/(3*nf)));							% number of sources, in 1:3 ratio to receiv
 nr = 3*ns;												% number of receivers
 c_vec = [1 ctr+1];										% vector for colorbar
 sigma = 1e-5;											% noise level
-maxit = 25;												% maximum number of LBFGS iterations
+maxit = 5;												% maximum number of LBFGS iterations
 smoothness = 10;										% intensity of smoothing filter
 dom = domain([0 384/122 0 1],[nx ny]);					% rectangular domain
 source_info.type = 'hline';								% create a horizontal line of sources
@@ -51,7 +52,7 @@ c0 = dom.M2m(smooth(dom.m2M(c_true),smoothness));		% initial estimate for backgr
 %% Saving data to disk
 % Determine how many computational experiments have been run
 if save_data
-	exper_num = 1;
+	exper_num = 1; %#ok<*UNRCH>
 	while exist(sprintf('%s/setup%d.fig',data_dir,exper_num),'file')
 		exper_num = exper_num+1;
 	end

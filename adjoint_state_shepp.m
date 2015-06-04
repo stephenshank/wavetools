@@ -1,7 +1,8 @@
-%% Clear and close everything
+%% Clear and close everything, open parallel pool
 clear all
 close all
 clc
+if isempty(gcp('nocreate')), parpool; end
 
 %% Problem setup and parameters
 fmin=1;							% minimum frequency
