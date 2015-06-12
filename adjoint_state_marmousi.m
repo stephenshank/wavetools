@@ -17,37 +17,38 @@ nf = 12;												% number of frequencies
 ctr = 1;												% contrast
 
 %% Remaining parameters
-nx = ceil(384*10*fmax/122);								% number of gridpoints in x direction
-ny = ceil(10*fmax);										% number of gridpoints in y direction
-wpml = .1;												% width of PML
-freqs = linspace(fmin,fmax,nf);							% frequencies
-ns = ceil(sqrt(nx*ny/(3*nf)));							% number of sources, in 1:3 ratio to receivers
-nr = 3*ns;												% number of receivers
-c_vec = [1 ctr+1];										% vector for colorbar
-sigma = 1e-5;											% noise level
-maxit = 5;												% maximum number of LBFGS iterations
-smoothness = 10;										% intensity of smoothing filter
-dom = domain([0 384/122 0 1],[nx ny]);					% rectangular domain
-source_info.type = 'hline';								% create a horizontal line of sources
-source_info.bounds = [.2 2.9];							% left and right endpoints of sources
-source_info.height = .8;								% height of sources
-sources = sources_and_receivers(ns,source_info);		% x and y locations of sources
-receiver_info.type = 'hline';							% create a horizontal line of receivers
-receiver_info.bounds = [.2 2.9];						% left and right endpoints of receivers
-receiver_info.height = .75;								% height of receivers
-receivers = sources_and_receivers(nr,receiver_info);	% x and y locations of receivers
-if strcmp(window_type,'all')							% decide whether or not to window
-	window_info.type = 'all';							% take all points
+% Ensures 10 grid points per wavelength
+nx = ceil(384*10*fmax/122);									% number of gridpoints in x direction
+ny = ceil(10*fmax);											% number of gridpoints in y direction
+wpml = .1;													% width of PML
+freqs = linspace(fmin,fmax,nf);								% frequencies
+ns = ceil(sqrt(nx*ny/(3*nf)));								% number of sources, in 1:3 ratio to receivers
+nr = 3*ns;													% number of receivers
+c_vec = [1 ctr+1];											% vector for colorbar
+sigma = 1e-5;												% noise level
+maxit = 5;													% maximum number of LBFGS iterations
+smoothness = 10;											% intensity of smoothing filter
+dom = domain([0 384/122 0 1],[nx ny]);						% rectangular domain
+source_info.type = 'hline';									% create a horizontal line of sources
+source_info.bounds = [.2 2.9];								% left and right endpoints of sources
+source_info.height = .8;									% height of sources
+sources = sources_and_receivers(ns,source_info);			% x and y locations of sources
+receiver_info.type = 'hline';								% create a horizontal line of receivers
+receiver_info.bounds = [.2 2.9];							% left and right endpoints of receivers
+receiver_info.height = .75;									% height of receivers
+receivers = sources_and_receivers(nr,receiver_info);		% x and y locations of receivers
+if strcmp(window_type,'all')								% decide whether or not to window
+	window_info.type = 'all';								% take all points
 else
-	window_info.type = 'rectangle_inner';				% create a rectangular window
-	window_info.bounds = [.1 3 .7 .85];					% boundary of this window
+	window_info.type = 'rectangle_inner';					% create a rectangular window
+	window_info.bounds = [.1 3 .7 .85];						% boundary of this window
 end
-[win_inds,W] = dom.window(window_info);					% indices of elements outside of window
-pml_info.type = 'pml';									% pml info, for plotting purposes
-pml_info.width = wpml;									% width of pml
-[~,PML] = dom.window(pml_info);							% indicates whether a pixel is inside PML
-c_true = dom.M2m(marmousi(dom,'hard',ctr));				% true background velocity
-c0 = dom.M2m(smooth(dom.m2M(c_true),smoothness));		% initial estimate for background velocity
+[win_inds,W] = dom.window(window_info);						% indices of elements outside of window
+pml_info.type = 'pml';										% pml info, for plotting purposes
+pml_info.width = wpml;										% width of pml
+[~,PML] = dom.window(pml_info);								% indicates whether a pixel is inside PML
+c_true = dom.mat2vec(marmousi(dom,'hard',ctr));				% true background velocity
+c0 = dom.mat2vec(smooth(dom.vec2mat(c_true),smoothness));	% initial estimate for background velocity
 
 %% Saving data to disk
 % Determine how many computational experiments have been run

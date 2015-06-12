@@ -1,58 +1,109 @@
 classdef domain
-	
+%DOMAIN   Physical domain, discrete grid and related quantities.
+%   DOM = DOMAIN(SPATIAL_DATA,SIZE_DATA) returns an object which has useful
+%   methods for working PDEs on a two-dimensional domain that are
+%   discretized on a grid in the interior of that domain.
+%
+%   SPATIAL_DATA is a vector with four entries [xmin,xmax,ymin,ymax] which
+%   give the dimensions of the rectangular domain. SIZE_DATA is a vector
+%   with two entries which gives the number of interior gridpoints in the
+%   x- and y-directions, respectively.
+%
+%   domain Properties:
+%      xmin - Minimal x-value describing rectangular domain.
+%      xmax - Maximal x-value describing rectangular domain.
+%      ymin - Minimal y-value describing rectangular domain.
+%      ymax - Maximal y-value describing rectangular domain.
+%      nx - Number of interior gridpoints in x-direction.
+%      ny - Number of interior gridpoints in y-direction.
+%      N - Total number of interior gridpoints.
+%      hx - Grid spacing in x-direction.
+%      hy - Grid spacing in y-direction.
+%      x - Vector of x-values of interior gridpoints.
+%      y - Vector of y-values of interior gridpoints.
+%      X - Matrix of x-values of interior gridpoints (from meshgrid).
+%      Y - Matrix of y-values of interior gridpoints (from meshgrid).
+%
+%   domain Methods:
+%      vec2mat - Convert a vector to matrix on the grid.
+%      mat2vec - Convert a matrix on the grid to a vector.
+%      loc2sub - Convert locations of points on the grid to subscripts on
+%         grid.
+%      sub2ind - Convert subscripts on the grid to flat indices.
+%      loc2ind - Convert locations of points on the grid to flat indices.
+%      pt_src - Create a point source (Dirac delta) at a given location.
+%      window - Gives relevant quantities for working with a window on the
+%         given domain.
+%      imagesc - Analogue of MATLAB's imagesc for working on the grid.
+%      plot - Analogue of MATLAB's plot for working on the grid.
+%      error - Compute discrete analogue of the error on the grid.
+
 	properties
-		xm
-		xM
-		ym
-		yM
-		nx
-		ny
-		N
-		hx
-		hy
-		x
-		y
-		X
-		Y
+		xmin	% Leftmost x-value in rectangular domain.
+		xmax	% Rightmost x-value in rectangular domain.
+		ymin	% Lowest y-value in rectangular domain.
+		ymax	% Highest y-value in rectangular domain.
+		nx		% Number of gridpoints in x-direction.
+		ny		% Number of gridpoints in y-direction.
+		N		% Total number of interior gridpoints.
+		hx		% Grid spacing in the x-direction.
+		hy		% Grid spacing in the y-direction.
+		x		% Vector of x-values.
+		y		% Vector of y-values.
+		X		% X in [X,Y] = meshgrid(x,y).
+		Y		% Y in [X,Y] = meshgrid(x,y)
 	end
 	
 	methods
 		
-		function self = domain(spatial_data, size_data)
-			self.xm = spatial_data(1);
-			self.xM = spatial_data(2);
-			self.ym = spatial_data(3);
-			self.yM = spatial_data(4);
+		function self = domain(spatial_data,size_data)
+			% Get information from spatial_data
+			self.xmin = spatial_data(1);
+			self.xmax = spatial_data(2);
+			self.ymin = spatial_data(3);
+			self.ymax = spatial_data(4);
+			
+			% Get information from size_data
 			self.nx = size_data(1);
 			self.ny = size_data(2);
+			
+			% Calculate quantities which depend on the above
 			self.N = self.nx*self.ny;
-			self.hx = (self.xM-self.xm)/(self.nx+1);
-			self.hy = (self.yM-self.ym)/(self.ny+1);
-			self.x = (self.xm+self.hx : self.hx : self.xM-self.hx)';
+			self.hx = (self.xmax-self.xmin)/(self.nx+1);
+			self.hy = (self.ymax-self.ymin)/(self.ny+1);
+			self.x = (self.xmin+self.hx : self.hx : self.xmax-self.hx)';
 			assert(length(self.x) == self.nx)
-			self.y = (self.ym+self.hy : self.hy : self.yM-self.hy)';
+			self.y = (self.ymin+self.hy : self.hy : self.ymax-self.hy)';
 			assert(length(self.y) == self.ny)
 			[self.X,self.Y] = meshgrid(self.x,self.y);
 		end
 		
-		function M=m2M(this,m)
+		function M=vec2mat(this,m)
+		%VEC2MAT   Reshape a vector to a matrix in accordance with domain.
 			M = flipud(reshape(m,this.nx,this.ny)');
 		end
 		
-		function m=M2m(this,M)
+		function m=mat2vec(this,M)
+		%MAT2VEC   Reshape a matrix to a vector in accordance with domain.
 			m = reshape(flipud(M)',this.N,1);
 		end
 		
 		function subs=loc2sub(this,locs)
-			subs = [round((locs(1,:)-this.xm)/this.hx);
-					round((locs(2,:)-this.ym)/this.hy)];
+		%LOC2SUB   Transform a location in the domain to its corresponding
+		%   subscripts on the grid.
+		subs = [round((locs(1,:)-this.xmin)/this.hx);
+				round((locs(2,:)-this.ymin)/this.hy)];
 		end
 		
 		function inds = sub2ind(this,subs)
+		%SUB2IND   Transform a pair of subscripts on the grid to their
+		%   corresponding flat-index in a vector.
 			inds = sub2ind([this.nx this.ny],subs(1,:),subs(2,:));
 		end
 		
 		function inds = loc2ind(this,locs)
+		%LOC2IND   Transform a location in the domain to its corresponding
+		%   flat-index in a vector.
 			inds = sort(this.sub2ind(this.loc2sub(locs)));
 			if ~(unique(inds) == inds)
 				warn('DOMAIN: Non uniqueness of indices!')
@@ -61,6 +112,8 @@ classdef domain
 		end
 		
 		function b = pt_src(this,xloc,yloc)
+		%LOC2IND   Create a point source (discrete Dirac delta) at a given
+		%   point  in the domain.
 			b = zeros(this.N,1);
 			bsub = this.loc2sub([xloc;yloc]);
 			bind = this.sub2ind(bsub);
@@ -68,6 +121,8 @@ classdef domain
 		end
 		
 		function [inds,W,IW] = window(this,info)
+		%WINDOW   Obtain relevant entities for working with a window in
+		%   the domain.
 			all_inds = 1:this.N;
 			vec = @(X) reshape(X,[],1);
 			x = vec(this.X');
@@ -92,10 +147,10 @@ classdef domain
 					end
 				case 'pml'
 					wpml = info.width;
-					xm = this.xm+wpml;
-					xM = this.xM-wpml;
-					ym = this.ym+wpml;
-					yM = this.yM-wpml;
+					xm = this.xmin+wpml;
+					xM = this.xmax-wpml;
+					ym = this.ymin+wpml;
+					yM = this.ymax-wpml;
 					inds = all_inds(x <= xm | x >= xM | y <= ym | y >= yM);
 					W = double(this.X <= xm | this.X >= xM | this.Y <= ym | this.Y >= yM);
 				case 'all'
@@ -108,12 +163,12 @@ classdef domain
 		
 		function imagesc(this,m,meshgrid)
 			if ~isreal(m)
-				warning('MESH: Discarding complex parts of m.')
+				warning('DOMAIN: Discarding complex parts of m.')
 				m = real(m);
 			end
 			if size(m,2) == 1
 				if nargin == 2 || meshgrid == false
-					imagesc(this.m2M(m))
+					imagesc(this.vec2mat(m))
 				else
 					imagesc(flipud(m))
 				end
@@ -130,7 +185,11 @@ classdef domain
 		end
 		
 		function err = error(this,A,B)
-			err = this.hx*this.hy*norm(A-B,'fro');
+			if size(A,2)==1
+				err = this.hx*this.hy*norm(A-B);
+			else
+				err = this.hx*this.hy*norm(A-B,'fro');
+			end
 		end
 		
 	end

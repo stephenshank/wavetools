@@ -59,7 +59,7 @@ title('Initial background velocity')
 caxis(c_vec)
 
 subplot(2,2,3)
-imagesc(dom.m2M(c_true)+PML)
+imagesc(dom.vec2mat(c_true)+PML)
 hold on
 dom.plot(receivers(1,:),receivers(2,:),'rx')
 dom.plot(sources(1,:),sources(2,:),'go')
@@ -69,7 +69,7 @@ axis square
 caxis([c_vec(1) c_vec(2)])
 
 subplot(2,2,4)
-imagesc(dom.m2M(c_true)+flipud(W))
+imagesc(dom.vec2mat(c_true)+flipud(W))
 hold on
 dom.plot(receivers(1,:),receivers(2,:),'rx')
 dom.plot(sources(1,:),sources(2,:),'go')

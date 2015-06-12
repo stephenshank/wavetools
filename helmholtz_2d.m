@@ -1,9 +1,9 @@
 function [K,M,omega] = helmholtz_2d(m,f,dom,pml)
 
-xm = dom.xm;				% left x boundary
-xM = dom.xM;				% right x boundary
-ym = dom.ym;				% bottom y boundary
-yM = dom.yM;				% top y boundary
+xm = dom.xmin;				% left x boundary
+xM = dom.xmax;				% right x boundary
+ym = dom.ymin;				% bottom y boundary
+yM = dom.ymax;				% top y boundary
 nx = dom.nx;				% number of gridpoints in x direction
 ny = dom.ny;				% number of gridpoints in y direction
 hx = dom.hx;				% grid spacing in x direction
