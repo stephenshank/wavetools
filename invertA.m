@@ -1,14 +1,14 @@
 classdef invertA
 %INVERTA   Inverse of a matrix A.
-%	AINV = INVERTA(A) computes and stores a sparse-LUPQ factorization of
-%	the the sparse matrix A. Linear solves (i.e., vectors X such that
-%	A*X = B for a given vector B) can be performed by calling the apply
-%	method, i.e., X = AINV.APPLY(B).
+%   AINV = INVERTA(A) computes and stores a sparse-LUPQ factorization of
+%   the the sparse matrix A. Linear solves (i.e., vectors X such that
+%   A*X = B for a given vector B) can be performed by calling the apply
+%   method, i.e., X = AINV.APPLY(B).
 %
-%	AINV = INVERT(A,1) allows solves with the transpose of A to also be
-%	performed, and stores transposes of the LUPQ factors. Linear solves
-%	with A^T (i.e., vectors X such that A^T*X = B for a given vector B) can
-%	be performed by calling the apply method, i.e., X = AINV.APPLYT(B).
+%   AINV = INVERT(A,1) allows solves with the transpose of A to also be
+%   performed, and stores transposes of the LUPQ factors. Linear solves
+%   with A^T (i.e., vectors X such that A^T*X = B for a given vector B) can
+%   be performed by calling the apply method, i.e., X = AINV.APPLYT(B).
 
 properties
 	transpose;		% boolean to indicate whether we store tranpose of A
