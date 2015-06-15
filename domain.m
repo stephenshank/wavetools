@@ -32,7 +32,7 @@ classdef domain
 %      sub2ind - Convert subscripts on the grid to flat indices.
 %      loc2ind - Convert locations of points on the grid to flat indices.
 %      pt_src - Create a point source (Dirac delta) at a given location.
-%      window - Gives relevant quantities for working with a window on the
+%      window - Given relevant quantities for working with a window on the
 %         given domain.
 %      imagesc - Analogue of MATLAB's imagesc for working on the grid.
 %      plot - Analogue of MATLAB's plot for working on the grid.
