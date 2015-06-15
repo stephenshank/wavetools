@@ -31,7 +31,8 @@ title('Free space solution')
 caxis(cvec)
 
 %% Shepp-Logan phantom
-C = phantom2(n);
+dom = domain([0 1 0 1],[n n]);
+C = phantom2(dom);
 m = dom.mat2vec(1./C.^2);
 A = helmholtz_2d(m,f,dom,pml);
 b = dom.pt_src(x,y);
