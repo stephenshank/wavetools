@@ -25,6 +25,7 @@ title('Discrete approximation')
 cvec = caxis;
 
 subplot(2,4,1)
+% Analytic solution may be written in terms of Bessel functions.
 Utrue = flipud(1i*besselh(0,omega*abs(dom.X+1i*dom.Y-(x+1i*y)))/4);
 imagesc(real(Utrue));
 title('Free space solution')

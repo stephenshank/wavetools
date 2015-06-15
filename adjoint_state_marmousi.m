@@ -49,7 +49,7 @@ end
 pml_info.type = 'pml';										% pml info, for plotting purposes
 pml_info.width = wpml;										% width of pml
 [~,PML] = dom.window(pml_info);								% indicates whether a pixel is inside PML
-c_true = dom.mat2vec(marmousi(dom,ctr));				% true background velocity
+c_true = dom.mat2vec(marmousi(dom,ctr));					% true background velocity
 c0 = dom.mat2vec(smooth(dom.vec2mat(c_true),smoothness));	% initial estimate for background velocity
 
 %% Saving data to disk
