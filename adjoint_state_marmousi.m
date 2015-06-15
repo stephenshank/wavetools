@@ -1,3 +1,5 @@
+% Illustrate usage of adjoint_state_2d and related files to recover the
+% Marmousi velocity model.
 % NOTICE: This script can be configured to save data from different runs.
 % Simply set save_data = 1 and alter data_dir on line 12 below.
 
@@ -8,7 +10,7 @@ clc
 if isempty(gcp('nocreate')), parpool; end
 
 %% Key parameters (designed to be edited quickly)
-window_type = 'all';									% change to get rectangular window around receivers
+window_type = 'rectangle_inner';						% change to get rectangular window around receivers
 save_data = 0;											% determine whether we save info
 data_dir = '~/Documents/MATLAB/wavetools/marm_data/';	% directory to save data in (if save_data=1)
 fmin = 1;												% minimum frequency
@@ -40,14 +42,14 @@ receivers = sources_and_receivers(nr,receiver_info);		% x and y locations of rec
 if strcmp(window_type,'all')								% decide whether or not to window
 	window_info.type = 'all';								% take all points
 else
-	window_info.type = 'rectangle_inner';					% create a rectangular window
+	window_info.type = 'rectangle_outer';					% create a rectangular window
 	window_info.bounds = [.1 3 .7 .85];						% boundary of this window
 end
 [win_inds,W] = dom.window(window_info);						% indices of elements outside of window
 pml_info.type = 'pml';										% pml info, for plotting purposes
 pml_info.width = wpml;										% width of pml
 [~,PML] = dom.window(pml_info);								% indicates whether a pixel is inside PML
-c_true = dom.mat2vec(marmousi(dom,'hard',ctr));				% true background velocity
+c_true = dom.mat2vec(marmousi(dom,ctr));				% true background velocity
 c0 = dom.mat2vec(smooth(dom.vec2mat(c_true),smoothness));	% initial estimate for background velocity
 
 %% Saving data to disk
@@ -81,7 +83,7 @@ caxis(c_vec)
 
 % Sources, receivers and PML
 subplot(2,4,5:6)
-imagesc(dom.m2M(c_true)+ctr*PML)
+imagesc(dom.vec2mat(c_true)+ctr*PML)
 hold on
 dom.plot(receivers(1,:),receivers(2,:),'rx')
 dom.plot(sources(1,:),sources(2,:),'go')
@@ -92,7 +94,7 @@ caxis([c_vec(1) c_vec(2)])
 
 % Sources, receivers and window
 subplot(2,4,7:8)
-imagesc(dom.m2M(c_true)+ctr*flipud(W))
+imagesc(dom.vec2mat(c_true)+ctr*flipud(W))
 hold on
 dom.plot(receivers(1,:),receivers(2,:),'rx')
 dom.plot(sources(1,:),sources(2,:),'go')

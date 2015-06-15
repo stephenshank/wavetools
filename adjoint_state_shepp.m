@@ -1,3 +1,6 @@
+% Illustrate usage of adjoint_state_2d and related files to recover the
+% Shepp-Logan phantom.
+
 %% Clear and close everything, open parallel pool
 clear all
 close all
@@ -33,8 +36,8 @@ window_info.center=[.5 .5];
 window_info.radius=.3;
 
 [~,W]=dom.window(window_info);
-c_true=dom.M2m(phantom2(nx,.35,ctr,smoothness));
-c0=dom.M2m(ones(nx));
+c_true=dom.mat2vec(phantom2(dom,.35,ctr,smoothness));
+c0=ones(nx^2,1);
 pml_info.type='pml';
 pml_info.width=wpml;
 [~,PML]=dom.window(pml_info);

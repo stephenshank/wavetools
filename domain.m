@@ -123,6 +123,26 @@ classdef domain
 		function [inds,W,IW] = window(this,info)
 		%WINDOW   Obtain relevant entities for working with a window in
 		%   the domain.
+		%
+		%	[INDS,W,IW] = WINDOW(THIS,INFO) returns flat indices of the
+		%	variables which lie inside of the window, a matrix the size of
+		%	the domain which indicates points that are inside of the
+		%	window, and a matrix that prolongates variables from the inside
+		%	of the window to the rest of the domain.
+		%
+		%   A window is a region of the domain where unknown values of the
+		%   model lie. It is described by the struct INFO, which requires a
+		%   field 'type' that either the string disk, rectangle_inner,
+		%   rectangle_outer, or all.
+		%   
+		%   If type is set to disk, fields center and radius of info
+		%   describe this disk, and the window is the interior. If type is
+		%   set to rectangle_inner or rectangle_outer, the field bounds
+		%   should be a vector of the form [xmin xmax ymin ymax] which
+		%   describe this rectangle, and the window is the inside or
+		%   outside of this rectangle. If type is set to all, the window is
+		%   the whole domain (i.e., there is no window).
+		
 			all_inds = 1:this.N;
 			vec = @(X) reshape(X,[],1);
 			x = vec(this.X');
@@ -138,7 +158,7 @@ classdef domain
 					xM = info.bounds(2);
 					ym = info.bounds(3);
 					yM = info.bounds(4);
-					if strcmp(info.type,'rectangle_inner')
+					if strcmp(info.type,'rectangle_outer')
 						inds = all_inds(x <= xm | x >= xM | y <= ym | y >= yM);
 						W = double(this.X <= xm | this.X >= xM | this.Y <= ym | this.Y >= yM);
 					else
